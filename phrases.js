@@ -1,4 +1,4 @@
-exports.default = [
+module.exports = [
   'A bigger bang for your buck',
   'A bird in the hand is worth two in the bush',
   'A bunch of fives',
