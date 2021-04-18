@@ -1,0 +1,17 @@
+{
+  "name": "dice_maker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "an-array-of-english-words": "^2.0.0",
+    "debug": "^4.3.1",
+    "discord.js": "^12.5.3",
+    "xxhash-addon": "^1.4.0"
+  }
+}
