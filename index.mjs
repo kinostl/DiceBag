@@ -14,6 +14,11 @@ const knex = Knex({
   },
   useNullAsDefault: true
 })
+await knex.schema.createTableIfNotExists('globals', (t) => {
+  t.string('guild').unique()
+  t.string('salt')
+  t.integer('series')
+})
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
 const gimmicks = ['glows in the dark', 'glitters', 'object inside', 'round']
@@ -96,10 +101,17 @@ client.on('ready', () => {
 })
 
 client.on('guildCreate', async guild => {
+  const salt = hasher.hash(Buffer.from(Math.random(), 'utf8')).toString('hex')
+  await knex('globals').insert({
+    guild: guild.id,
+    salt: salt,
+    series: 0
+  })
+
   return await knex.schema.createTableIfNotExists(guild.id, (t) => {
-    t.integer('id').unique() // ID = Lottery + (256*series).
+    t.integer('id').unique() // ID = Lottery + (255*series).
     t.integer('series') // Series starts at 0 in code but 1 in presentation
-    t.integer('number')
+    t.integer('number') // ID Within the Series
     t.text('owner')
     t.string('hash')
     t.string('color')
@@ -114,8 +126,8 @@ client.on('guildCreate', async guild => {
 })
 
 client.on('message', async msg => {
-  const hash = hasher.hash(Buffer.from(msg.content, 'utf8')).toString('hex')
-  const { series } = await knex('global').first('id', msg.guild.id)
+  const { series, salt } = await knex('global').first('id', msg.guild.id)
+  const hash = hasher.hash(Buffer.from(msg.content + salt, 'utf8')).toString('hex')
   if (await diceExists(msg.guild.id, hash, series)) return
   const diceData = getDiceData(hash)
   diceData.owner = msg.member.id
