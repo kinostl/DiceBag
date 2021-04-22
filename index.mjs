@@ -127,27 +127,30 @@ client.on('guildCreate', async guild => {
     t.string('faceCount')
     t.jsonb('faces')
     t.text('notes')
-    t.timestamps(false, true)
   })
 })
 
 client.on('message', async msg => {
   if(msg.author.bot) return
 
-  const { series, salt, last_winner } = await knex('globals').where('guild', msg.guild.id).first()
+  const { series, salt, last_winner, updated_at } = await knex('globals').where('guild', msg.guild.id).first()
 
   if(msg.author.id === last_winner) return
-
   const hash = hasher.hash(Buffer.from(msg.content + salt, 'utf8')).toString('hex')
+
+  if(hash.charAt(6) !== hash.charAt(9)) return
+
   const diceDoesExist = await diceExists(msg.guild.id, hash, series)
   if (diceDoesExist) return
-  console.log("Winner!!", msg)
+
   const diceData = getDiceData(hash)
   diceData.owner = msg.member.id
   diceData.id = diceData.number + (255 * series)
   diceData.series = series
+
   await knex(msg.guild.id).insert(diceData)
   await knex('globals').where('guild',msg.guild.id).update('last_winner', msg.author.id)
+
   return msg.reply('You won!')
 })
 
