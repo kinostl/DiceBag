@@ -66,6 +66,13 @@ function getDiceData (hash) {
   faceCalcs.slurry = (i) => faceCalcs[specialTypes[i % specialTypes.length]](i)
 
   diceData.faces = []
+
+  if (diceData.faceCounts === 0) {
+    diceData.specialType = 'not a dice'
+    diceData.face[0] = faceCalcs.symbols(0)
+    return diceData
+  }
+
   for (let i = 0; i < diceData.faceCounts; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
   }
