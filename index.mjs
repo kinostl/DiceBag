@@ -10,15 +10,18 @@ const hasher = new XXHash128()
 const knex = Knex({
   client: 'sqlite3',
   connection: {
-    filename: './dice.sqlite'
+    filename: process.env.DB||':memory:'
   },
   useNullAsDefault: true
 })
-await knex.schema.createTableIfNotExists('globals', (t) => {
+const hasGlobalsTable = await knex.schema.hasTable('globals')
+if(!hasGlobalsTable) {
+  await knex.schema.createTable('globals', (t) => {
   t.string('guild').unique()
   t.string('salt')
   t.integer('series')
 })
+}
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
 const gimmicks = ['glows in the dark', 'glitters', 'object inside', 'round']
@@ -108,7 +111,10 @@ client.on('guildCreate', async guild => {
     series: 0
   }).onConflict().ignore()
 
-  return await knex.schema.createTableIfNotExists(guild.id, (t) => {
+  const guildHasTable = await knex.schema.hasTable(guild.id)
+  if(guildHasTable) return
+
+  return await knex.schema.createTable(guild.id, (t) => {
     t.integer('id').unique() // ID = Lottery + (255*series).
     t.integer('series') // Series starts at 0 in code but 1 in presentation
     t.integer('number') // ID Within the Series
@@ -137,4 +143,4 @@ client.on('message', async msg => {
   return msg.reply(diceData)
 })
 
-client.login('token')
+client.login(process.env.DISCORD_TOKEN)
