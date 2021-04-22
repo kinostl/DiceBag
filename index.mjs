@@ -33,7 +33,7 @@ const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 3
 
 async function diceExists (guild, hash, series) {
   const id = parseInt(hash.substring(0, 2), 16) + (255 * series)
-  const res = await knex(guild).first('id', id)
+  const res = await knex(guild).where('id', id).first()
   return !!res
 }
 
@@ -54,7 +54,7 @@ function getDiceData (hash) {
   }
 
   diceData.number = indexes.get(0, 'small')
-  diceData.faceCounts = faceCounts[indexes.get(1, 'small') % faceCounts.length]
+  diceData.faceCount = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size = indexes.get(0) === indexes.get(1) ? 'foam' : diceSizes[indexes.get(0)] || '16mm'
   diceData.specialType = indexes.get(2) === indexes.get(3) ? 'slurry' : specialTypes[indexes.get(1)] || 'pipped'
@@ -75,25 +75,23 @@ function getDiceData (hash) {
 
   diceData.faces = []
 
-  if (diceData.faceCounts === 0) {
+  if (diceData.faceCount === 0) {
     diceData.specialType = 'invisible'
-    diceData.face[0] = ' '
+    diceData.faces[0] = ' '
     return diceData
   }
 
-  if (diceData.faceCounts === 1) {
+  if (diceData.faceCount === 1) {
     diceData.specialType = 'not a dice'
-    diceData.face[0] = faceCalcs.symbols(0)
+    diceData.faces[0] = ' '
+    diceData.notes = `- It is actually a ${faceCalcs.symbols(0)}!\n`
     return diceData
   }
+  if(diceData.gimmick == 'glows in the dark') diceData.notes += `- It glows ${colors[indexes.get(5) % colors.length]}! \n`
+  if(diceData.gimmick == 'glitters') diceData.notes += `- It glitters ${colors[indexes.get(5) % colors.length]}! \n`
+  if(diceData.gimmick == 'object inside') diceData.notes += `- The object inside is a ${faceCalcs.symbols(0)}! \n`
 
-  if (diceData.faceCounts === 0) {
-    diceData.specialType = 'invisible'
-    diceData.face[0] = ' '
-    return diceData
-  }
-
-  for (let i = 0; i < diceData.faceCounts; i++) {
+  for (let i = 0; i < diceData.faceCount; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
   }
   return diceData
@@ -104,12 +102,12 @@ client.on('ready', () => {
 })
 
 client.on('guildCreate', async guild => {
-  const salt = hasher.hash(Buffer.from(Math.random(), 'utf8')).toString('hex')
+  const salt = hasher.hash(Buffer.from(`${Math.random()}`, 'utf8')).toString('hex')
   await knex('globals').insert({
     guild: guild.id,
     salt: salt,
     series: 0
-  }).onConflict().ignore()
+  }).onConflict('guild').ignore()
 
   const guildHasTable = await knex.schema.hasTable(guild.id)
   if(guildHasTable) return
@@ -127,20 +125,25 @@ client.on('guildCreate', async guild => {
     t.string('size')
     t.string('faceCount')
     t.jsonb('faces')
+    t.text('notes')
     t.timestamps(false, true)
   })
 })
 
 client.on('message', async msg => {
-  const { series, salt } = await knex('global').first('id', msg.guild.id)
+  if(msg.author.bot) return
+
+  const { series, salt } = await knex('globals').where('guild', msg.guild.id).first()
   const hash = hasher.hash(Buffer.from(msg.content + salt, 'utf8')).toString('hex')
-  if (await diceExists(msg.guild.id, hash, series)) return
+  const diceDoesExist = await diceExists(msg.guild.id, hash, series)
+  if (diceDoesExist) return
+  console.log("Winner!!", msg)
   const diceData = getDiceData(hash)
   diceData.owner = msg.member.id
   diceData.id = diceData.number + (255 * series)
   diceData.series = series
   await knex(msg.guild.id).insert(diceData)
-  return msg.reply(diceData)
+  return msg.reply('You won!')
 })
 
 client.login(process.env.DISCORD_TOKEN)
