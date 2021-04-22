@@ -23,8 +23,8 @@ const diceSizes = ['5mm', '8mm', '12mm', '16mm', '19mm', '25mm', '50mm']
 
 const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 34, 48, 50, 60, 100, 120]
 
-async function getId (guild, hash, series) {
-  const id = parseInt(hash.substring(0, 2), 16) + (256 * series)
+async function diceExists (guild, hash, series) {
+  const id = parseInt(hash.substring(0, 2), 16) + (255 * series)
   const res = await knex(guild).first('id', id)
   return !!res
 }
@@ -45,7 +45,7 @@ function getDiceData (hash) {
     if (size === 'tiny') return indexes.tiny[i] || i
   }
 
-  diceData.id = indexes.get(0, 'small')
+  diceData.number = indexes.get(0, 'small')
   diceData.faceCounts = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size = indexes.get(0) === indexes.get(1) ? 'foam' : diceSizes[indexes.get(0)] || '16mm'
@@ -96,9 +96,10 @@ client.on('ready', () => {
 })
 
 client.on('guildCreate', async guild => {
-  await knex.schema.createTableIfNotExists(guild.id, (t) => {
+  return await knex.schema.createTableIfNotExists(guild.id, (t) => {
     t.integer('id').unique() // ID = Lottery + (256*series).
     t.integer('series') // Series starts at 0 in code but 1 in presentation
+    t.integer('number')
     t.text('owner')
     t.string('hash')
     t.string('color')
@@ -115,12 +116,13 @@ client.on('guildCreate', async guild => {
 client.on('message', async msg => {
   const hash = hasher.hash(Buffer.from(msg.content, 'utf8')).toString('hex')
   const { series } = await knex('global').first('id', msg.guild.id)
-  if (await getId(msg.guild.id, hash, series)) return
+  if (await diceExists(msg.guild.id, hash, series)) return
   const diceData = getDiceData(hash)
   diceData.owner = msg.member.id
+  diceData.id = diceData.number + (255 * series)
   diceData.series = series
   await knex(msg.guild.id).insert(diceData)
-  msg.reply(diceData)
+  return msg.reply(diceData)
 })
 
 client.login('token')
