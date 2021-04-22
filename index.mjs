@@ -37,15 +37,14 @@ diceData.faceCounts = faceCounts[diceData.bigIndexes[4] % faceCounts.length]
 diceData.faces = []
 const faceCalcs = {}
 faceCalcs.none = (i) => i + 1
-faceCalcs.words = (i) => i + 1
-faceCalcs.phrases = (i) => i + 1
-faceCalcs.fudge = (i) => i + 1
-faceCalcs.symbols = (i) => i + 1
 
-faceCalcs.slurry = (i) => {
-  const faceCalc = ['none', 'words', 'phrases', 'fudge', 'symbols']
-  return faceCalcs[faceCalc[i % faceCalc.length]](i)
-}
+faceCalcs.words = (i) => dic[i] || i + 1
+faceCalcs.phrases = (i) => phrases[i] || i + 1
+faceCalcs.fudge = (i) => ['-', ' ', '+'][i % 3]
+faceCalcs.symbols = (i) => emojis[i] || i + 1
+
+faceCalcs.slurry = (i) => faceCalcs[specialTypes[i % specialTypes.length]](i)
+
 for (let i = 0; i < diceData.faceCounts; i++) {
   diceData.faces[i] = faceCalcs[diceData.specialType](i)
 }
