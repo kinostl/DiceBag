@@ -18,7 +18,7 @@ const knex = Knex({
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
 const gimmicks = ['glows in the dark', 'glitters', 'object inside', 'round']
 const materials = ['metal', 'wood', 'glass']
-const specialTypes = ['words', 'phrases', 'fudge', 'symbols', 'none']
+const specialTypes = ['words', 'phrases', 'fudge', 'symbols', 'pipped']
 const diceSizes = ['5mm', '8mm', '12mm', '16mm', '19mm', '25mm', '50mm']
 
 const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 34, 48, 50, 60, 100, 120]
@@ -49,14 +49,14 @@ function getDiceData (hash) {
   diceData.faceCounts = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size = indexes.get(0) === indexes.get(1) ? 'foam' : diceSizes[indexes.get(0)] || '16mm'
-  diceData.specialType = indexes.get(2) === indexes.get(3) ? 'slurry' : specialTypes[indexes.get(1)] || 'none'
+  diceData.specialType = indexes.get(2) === indexes.get(3) ? 'slurry' : specialTypes[indexes.get(1)] || 'pipped'
   diceData.gimmick = gimmicks[indexes.get(2)] || 'none'
   diceData.material = materials[indexes.get(3)] || 'plastic'
   diceData.color = colors[indexes.get(4) % colors.length]
 
   const faceCalcs = {}
 
-  faceCalcs.none = (i) => i + 1
+  faceCalcs.pipped = (i) => i + 1
 
   faceCalcs.words = (i) => dic[indexes.get(i, 'huge') % dic.length]
   faceCalcs.phrases = (i) => phrases[indexes.get(i, 'big') % phrases.length]
@@ -68,8 +68,20 @@ function getDiceData (hash) {
   diceData.faces = []
 
   if (diceData.faceCounts === 0) {
+    diceData.specialType = 'invisible'
+    diceData.face[0] = ' '
+    return diceData
+  }
+
+  if (diceData.faceCounts === 1) {
     diceData.specialType = 'not a dice'
     diceData.face[0] = faceCalcs.symbols(0)
+    return diceData
+  }
+
+  if (diceData.faceCounts === 0) {
+    diceData.specialType = 'invisible'
+    diceData.face[0] = ' '
     return diceData
   }
 
