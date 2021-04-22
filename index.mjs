@@ -3,10 +3,17 @@ import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
 import Discord from 'discord.js'
+import Knex from 'knex'
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
-const diceMap = {}
+const knex = Knex({
+  client: 'sqlite3',
+  connection: {
+    filename: './dice.sqlite'
+  },
+  useNullAsDefault: true
+})
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
 const gimmicks = ['glows in the dark', 'glitters', 'object inside', 'round']
@@ -16,8 +23,12 @@ const diceSizes = ['5mm', '8mm', '12mm', '16mm', '19mm', '25mm', '50mm']
 
 const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 34, 48, 50, 60, 100, 120]
 
-function claimed (id) { return !!diceMap[id] }
-function getLottery (hash) { return parseInt(hash.substring(0, 2), 16) }
+async function getId (guild, hash, series) {
+  const id = parseInt(hash.substring(0, 2), 16) + (256 * series)
+  const res = await knex(guild).first('id', id)
+  return !!res
+}
+
 function getDiceData (hash) {
   const diceData = {}
   diceData.hash = hash
@@ -34,7 +45,7 @@ function getDiceData (hash) {
     if (size === 'tiny') return indexes.tiny[i] || i
   }
 
-  diceData.lottery = indexes.get(0, 'small')
+  diceData.id = indexes.get(0, 'small')
   diceData.faceCounts = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size = indexes.get(0) === indexes.get(1) ? 'foam' : diceSizes[indexes.get(0)] || '16mm'
@@ -65,12 +76,32 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on('message', msg => {
+client.on('guildCreate', async guild => {
+  await knex.schema.createTableIfNotExists(guild.id, (t) => {
+    t.integer('id').unique() // ID = Lottery + (256*series).
+    t.integer('series') // Series starts at 0 in code but 1 in presentation
+    t.text('owner')
+    t.string('hash')
+    t.string('color')
+    t.string('gimmick')
+    t.string('material')
+    t.string('specialType')
+    t.string('size')
+    t.string('faceCount')
+    t.jsonb('faces')
+    t.timestamps(false, true)
+  })
+})
+
+client.on('message', async msg => {
   const hash = hasher.hash(Buffer.from(msg.content, 'utf8')).toString('hex')
-  const lottery = getLottery(hash)
-  if (claimed(lottery)) return
-  diceMap[lottery] = getDiceData(hash)
-  msg.reply(diceMap[lottery])
+  const { series } = await knex('global').first('id', msg.guild.id)
+  if (await getId(msg.guild.id, hash, series)) return
+  const diceData = getDiceData(hash)
+  diceData.owner = msg.member.id
+  diceData.series = series
+  await knex(msg.guild.id).insert(diceData)
+  msg.reply(diceData)
 })
 
 client.login('token')

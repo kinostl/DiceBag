@@ -12,6 +12,8 @@
     "an-array-of-english-words": "^2.0.0",
     "debug": "^4.3.1",
     "discord.js": "^12.5.3",
+    "knex": "^0.95.4",
+    "sqlite3": "^5.0.2",
     "xxhash-addon": "^1.4.0"
   }
 }
