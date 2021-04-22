@@ -3,9 +3,6 @@ import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
 
-console.log('dic', dic.length)
-console.log('phrases', phrases.length)
-console.log('emojies', emojis.length)
 const hasher = new XXHash128()
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
