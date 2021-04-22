@@ -106,7 +106,7 @@ client.on('guildCreate', async guild => {
     guild: guild.id,
     salt: salt,
     series: 0
-  })
+  }).onConflict().ignore()
 
   return await knex.schema.createTableIfNotExists(guild.id, (t) => {
     t.integer('id').unique() // ID = Lottery + (255*series).
