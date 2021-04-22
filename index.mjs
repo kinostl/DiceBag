@@ -137,6 +137,8 @@ client.on('message', async msg => {
   const { series, salt, last_winner, last_messenger, updated_at } = await knex('globals').where('guild', msg.guild.id).first()
 
   if(msg.author.id === last_messenger) return
+  await knex('globals').where('guild',msg.guild.id).update('last_messenger', msg.author.id)
+
   if(msg.author.id === last_winner) return
   const hash = hasher.hash(Buffer.from(msg.content + salt, 'utf8')).toString('hex')
 
@@ -152,7 +154,6 @@ client.on('message', async msg => {
 
   await knex(msg.guild.id).insert(diceData)
   await knex('globals').where('guild',msg.guild.id).update('last_winner', msg.author.id)
-  await knex('globals').where('guild',msg.guild.id).update('last_messenger', msg.author.id)
 
   return msg.reply('You won!')
 })
