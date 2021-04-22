@@ -13,15 +13,19 @@ const diceSizes = ['5mm', '8mm', '12mm', '16mm', '19mm', '25mm', '50mm']
 
 const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 34, 48, 50, 60, 100, 120]
 
-function getDiceData (msg) {
+const msg = 'Hello World'
+const hash = hasher.hash(Buffer.from(msg, 'utf8')).toString('hex')
+
+function getLottery (hash) { return parseInt(hash.substring(0, 2), 16) }
+function getDiceData (hash) {
   const diceData = {}
-  diceData.hash = hasher.hash(Buffer.from(msg, 'utf8')).toString('hex')
+  diceData.hash = hash
 
   const indexes = {}
-  indexes.tiny = diceData.hash.match(/.{1,1}/g).map((curr) => parseInt(curr, 16)) // 16
-  indexes.small = diceData.hash.match(/.{1,2}/g).map((curr) => parseInt(curr, 16)) // 256
-  indexes.big = diceData.hash.match(/.{1,3}/g).map((curr) => parseInt(curr, 16)) // 4096
-  indexes.huge = diceData.hash.match(/.{1,4}/g).map((curr) => parseInt(curr, 16)) // 65536
+  indexes.tiny = hash.match(/.{1,1}/g).map((curr) => parseInt(curr, 16)) // 16
+  indexes.small = hash.match(/.{1,2}/g).map((curr) => parseInt(curr, 16)) // 256
+  indexes.big = hash.match(/.{1,3}/g).map((curr) => parseInt(curr, 16)) // 4096
+  indexes.huge = hash.match(/.{1,4}/g).map((curr) => parseInt(curr, 16)) // 65536
   indexes.get = (i, size = 'tiny') => {
     if (size === 'huge') return indexes.huge[i] || indexes.get(i, 'big')
     if (size === 'big') return indexes.big[i] || indexes.get(i, 'small')
@@ -30,7 +34,6 @@ function getDiceData (msg) {
   }
 
   diceData.lottery = indexes.get(0, 'small')
-  // if(claimed(lottery)) return
   diceData.faceCounts = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size = indexes.get(0) === indexes.get(1) ? 'foam' : diceSizes[indexes.get(0)] || '16mm'
@@ -39,8 +42,6 @@ function getDiceData (msg) {
   diceData.material = materials[indexes.get(3)] || 'plastic'
   diceData.color = colors[indexes.get(4) % colors.length]
 
-  // Step 8 Populate every face as described below.
-  diceData.faces = []
   const faceCalcs = {}
 
   faceCalcs.none = (i) => i + 1
@@ -52,11 +53,9 @@ function getDiceData (msg) {
 
   faceCalcs.slurry = (i) => faceCalcs[specialTypes[i % specialTypes.length]](i)
 
+  diceData.faces = []
   for (let i = 0; i < diceData.faceCounts; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
   }
   return diceData
 }
-
-console.log('Hello World', getDiceData('Hello World'))
-console.log('Merry Mancer Games', getDiceData('Merry Mancer Games'))
