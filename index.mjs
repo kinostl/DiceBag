@@ -2,8 +2,11 @@ import { XXHash128 } from 'xxhash-addon'
 import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
+import Discord from 'discord.js'
 
+const client = new Discord.Client()
 const hasher = new XXHash128()
+const diceMap = {}
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'pink', 'purple', 'black', 'white', 'brown']
 const gimmicks = ['glows in the dark', 'glitters', 'object inside', 'round']
@@ -13,9 +16,7 @@ const diceSizes = ['5mm', '8mm', '12mm', '16mm', '19mm', '25mm', '50mm']
 
 const faceCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 24, 30, 34, 48, 50, 60, 100, 120]
 
-const msg = 'Hello World'
-const hash = hasher.hash(Buffer.from(msg, 'utf8')).toString('hex')
-
+function claimed (id) { return !!diceMap[id] }
 function getLottery (hash) { return parseInt(hash.substring(0, 2), 16) }
 function getDiceData (hash) {
   const diceData = {}
@@ -59,3 +60,17 @@ function getDiceData (hash) {
   }
   return diceData
 }
+
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`)
+})
+
+client.on('message', msg => {
+  const hash = hasher.hash(Buffer.from(msg.content, 'utf8')).toString('hex')
+  const lottery = getLottery(hash)
+  if (claimed(lottery)) return
+  diceMap[lottery] = getDiceData(hash)
+  msg.reply(diceMap[lottery])
+})
+
+client.login('token')
