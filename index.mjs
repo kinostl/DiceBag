@@ -18,21 +18,21 @@ const msg = 'Hello World'
 
 diceData.hash = hasher.hash(Buffer.from(msg, 'utf8')).toString('hex')
 
-diceData.tinyIndexes = diceData.hash.match(/.{1,1}/g).map((curr) => parseInt(curr, 16))
-diceData.indexes = diceData.hash.match(/.{1,2}/g).map((curr) => parseInt(curr, 16))
-diceData.bigIndexes = diceData.hash.match(/.{1,3}/g).map((curr) => parseInt(curr, 16))
-diceData.hugeIndexes = diceData.hash.match(/.{1,4}/g).map((curr) => parseInt(curr, 16))
+diceData.tinyIndexes = diceData.hash.match(/.{1,1}/g).map((curr) => parseInt(curr, 16)) // 16
+diceData.indexes = diceData.hash.match(/.{1,2}/g).map((curr) => parseInt(curr, 16)) // 256
+diceData.bigIndexes = diceData.hash.match(/.{1,3}/g).map((curr) => parseInt(curr, 16)) // 4096
+diceData.hugeIndexes = diceData.hash.match(/.{1,4}/g).map((curr) => parseInt(curr, 16)) // 65536
 
 diceData.lottery = diceData.indexes[0]
 // if(claimed(lottery)) return
+diceData.faceCounts = faceCounts[diceData.indexes[1] % faceCounts.length]
 
-diceData.size = diceData.tinyIndexes[0] === diceData.tinyIndexes[1] ? 'foam' : diceSizes[diceData.indexes[1]] || '16mm'
-diceData.specialType = diceData.tinyIndexes[2] === diceData.tinyIndexes[3] ? 'slurry' : specialTypes[diceData.bigIndexes[0]] || 'none'
-diceData.gimmick = gimmicks[diceData.bigIndexes[1]] || 'none'
-diceData.material = materials[diceData.bigIndexes[2]] || 'plastic'
-diceData.color = colors[diceData.bigIndexes[3] % colors.length]
+diceData.size = diceData.tinyIndexes[0] === diceData.tinyIndexes[1] ? 'foam' : diceSizes[diceData.tinyIndexes[0]] || '16mm'
+diceData.specialType = diceData.tinyIndexes[2] === diceData.tinyIndexes[3] ? 'slurry' : specialTypes[diceData.tinyIndexes[1]] || 'none'
+diceData.gimmick = gimmicks[diceData.tinyIndexes[2]] || 'none'
+diceData.material = materials[diceData.tinyIndexes[3]] || 'plastic'
+diceData.color = colors[diceData.tinyIndexes[4] % colors.length]
 
-diceData.faceCounts = faceCounts[diceData.bigIndexes[4] % faceCounts.length]
 // Step 8 Populate every face as described below.
 diceData.faces = []
 const faceCalcs = {}
