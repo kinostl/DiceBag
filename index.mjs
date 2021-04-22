@@ -19,6 +19,7 @@ if(!hasGlobalsTable) {
   await knex.schema.createTable('globals', (t) => {
   t.string('guild').unique()
   t.string('salt')
+  t.string('last_winner')
   t.integer('series')
 })
 }
@@ -133,7 +134,10 @@ client.on('guildCreate', async guild => {
 client.on('message', async msg => {
   if(msg.author.bot) return
 
-  const { series, salt } = await knex('globals').where('guild', msg.guild.id).first()
+  const { series, salt, last_winner } = await knex('globals').where('guild', msg.guild.id).first()
+
+  if(msg.author.id === last_winner) return
+
   const hash = hasher.hash(Buffer.from(msg.content + salt, 'utf8')).toString('hex')
   const diceDoesExist = await diceExists(msg.guild.id, hash, series)
   if (diceDoesExist) return
@@ -143,6 +147,7 @@ client.on('message', async msg => {
   diceData.id = diceData.number + (255 * series)
   diceData.series = series
   await knex(msg.guild.id).insert(diceData)
+  await knex('globals').where('guild',msg.guild.id).update('last_winner', msg.author.id)
   return msg.reply('You won!')
 })
 
