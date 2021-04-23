@@ -1,4 +1,5 @@
 import { XXHash128 } from 'xxhash-addon'
+import { tossr } from 'tossr'
 import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
@@ -7,14 +8,16 @@ import PouchDb from 'pouchdb-node'
 import PouchDbFind from 'pouchdb-find'
 import express from 'express'
 import cuid from 'cuid'
+import cors from 'cors'
 
 PouchDb.plugin(PouchDbFind)
 const app = express()
+app.use(cors())
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
-const globals = new PouchDb('db/globals')
-const dicebags = new PouchDb('db/dicebags')
+const guildDatas = new PouchDb('db/guildData')
+const diceBags = new PouchDb('db/diceBags')
 
 const colors = [
   'red',
@@ -60,7 +63,7 @@ const faceCounts = [
 
 async function diceExists (guild, hash, series) {
   const number = parseInt(hash.substring(0, 2), 16)
-  const res = await dicebags.find({
+  const res = await diceBags.find({
     selector: { number, guild, series }
   })
 
@@ -149,7 +152,7 @@ client.on('guildCreate', async guild => {
   const salt = hasher
     .hash(Buffer.from(`${Math.random()}`, 'utf8'))
     .toString('hex')
-  globals.put({
+  guildDatas.put({
     _id: guild.id,
     salt: salt,
     series: 1
@@ -159,7 +162,7 @@ client.on('guildCreate', async guild => {
 client.on('message', async msg => {
   if (msg.author.bot) return
 
-  const guildData = await globals.get(msg.guild.id)
+  const guildData = await guildDatas.get(msg.guild.id)
   const { series, salt, lastWinner, lastMessenger } = guildData
   // if (msg.author.id === lastMessenger) return
   // guildData.lastMessenger = msg.author.id
@@ -184,14 +187,23 @@ client.on('message', async msg => {
 
   guildData.lastWinner = msg.author.id
 
-  await dicebags.put(diceData)
-  await globals.put(guildData)
+  await diceBags.put(diceData)
+  await guildDatas.put(guildData)
 
   return msg.reply('You won!')
 })
 
-app.get('/api/dicebags', async (req, res) => {
-  const dice = await dicebags.find({
+app.get('/api/guilds/:id', async (req, res) => {
+  const guild = await guildDatas.get(req.params.id)
+  return res.json(guild)
+})
+app.get('/api/dicebags/:profile/:id', async (req, res) => {
+  const dice = await diceBags.get(req.params.id)
+  return res.json(dice)
+})
+
+app.get('/api/dicebags/:profile', async (req, res) => {
+  const dice = await diceBags.find({
     selector: { hash: { $exists: true } },
     fields: ['_id', 'hash', 'number', 'series', 'faceCount', 'size']
   })
@@ -199,9 +211,9 @@ app.get('/api/dicebags', async (req, res) => {
   return res.json(dice.docs)
 })
 
-app.get('/api/dicebags/:id', async (req, res) => {
-  const dice = await dicebags.get(req.params.id)
-  return res.json(dice)
+app.get('*', async (req, res) => {
+  const html = await tossr(req.url)
+  res.send(html)
 })
 
 client.login(process.env.DISCORD_TOKEN)
