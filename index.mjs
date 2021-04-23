@@ -59,7 +59,7 @@ const faceCounts = [
 ]
 
 async function diceExists (guild, hash, series) {
-  const number = parseInt(hash.substring(0, 2), 16) + 255 * series
+  const number = parseInt(hash.substring(0, 2), 16)
   const res = await dicebags.find({
     selector: { number, guild, series }
   })
@@ -152,7 +152,7 @@ client.on('guildCreate', async guild => {
   globals.put({
     _id: guild.id,
     salt: salt,
-    series: 0
+    series: 1
   })
 })
 
@@ -197,6 +197,11 @@ app.get('/api/dicebags', async (req, res) => {
   })
   if (dice.warning) console.warn(dice.warning)
   return res.json(dice.docs)
+})
+
+app.get('/api/dicebags/:id', async (req, res) => {
+  const dice = await dicebags.get(req.params.id)
+  return res.json(dice)
 })
 
 client.login(process.env.DISCORD_TOKEN)
