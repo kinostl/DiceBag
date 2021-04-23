@@ -4,12 +4,15 @@ import phrases from './phrases.js'
 import emojis from './emoji.js'
 import Discord from 'discord.js'
 import PouchDb from 'pouchdb-node'
+import PouchDbFind from 'pouchdb-find'
 import cuid from 'cuid'
+
+PouchDb.plugin(PouchDbFind)
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
-const globals = new PouchDb('globals')
-const dicebags = new PouchDb('dicebags')
+const globals = new PouchDb('db/globals')
+const dicebags = new PouchDb('db/dicebags')
 
 const colors = [
   'red',
@@ -154,11 +157,11 @@ client.on('guildCreate', async guild => {
 client.on('message', async msg => {
   if (msg.author.bot) return
 
-  let guildData = await globals.get(msg.guild.id)
+  const guildData = await globals.get(msg.guild.id)
   const { series, salt, lastWinner, lastMessenger } = guildData
-  if (msg.author.id === lastMessenger) return
-  guildData.lastMessenger = msg.author.id
-  guildData = await globals.put(guildData)
+  // if (msg.author.id === lastMessenger) return
+  // guildData.lastMessenger = msg.author.id
+  // guildData = await globals.put(guildData)
 
   if (msg.author.id === lastWinner) return
 
