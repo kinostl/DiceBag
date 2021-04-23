@@ -5,9 +5,11 @@ import emojis from './emoji.js'
 import Discord from 'discord.js'
 import PouchDb from 'pouchdb-node'
 import PouchDbFind from 'pouchdb-find'
+import express from 'express'
 import cuid from 'cuid'
 
 PouchDb.plugin(PouchDbFind)
+const app = express()
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
@@ -188,4 +190,16 @@ client.on('message', async msg => {
   return msg.reply('You won!')
 })
 
+app.get('/api/dicebags', async (req, res) => {
+  const dice = await dicebags.find({
+    selector: { hash: { $exists: true } },
+    fields: ['_id', 'hash', 'number', 'series', 'faceCount', 'size']
+  })
+  if (dice.warning) console.warn(dice.warning)
+  return res.json(dice.docs)
+})
+
 client.login(process.env.DISCORD_TOKEN)
+app.listen(3000, () => {
+  console.log('Running website on 3000')
+})
