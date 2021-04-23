@@ -3,48 +3,13 @@ import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
 import Discord from 'discord.js'
-import Knex from 'knex'
+import PouchDb from 'pouchdb-node'
+import cuid from 'cuid'
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
-const knex = Knex({
-  client: 'sqlite3',
-  connection: {
-    filename: process.env.DB || ':memory:'
-  },
-  useNullAsDefault: true
-})
-
-const hasGlobalsTable = await knex.schema.hasTable('globals')
-if (!hasGlobalsTable) {
-  await knex.schema.createTable('globals', t => {
-    t.string('guild').unique()
-    t.string('salt')
-    t.string('last_winner')
-    t.string('last_messenger')
-    t.integer('series')
-  })
-}
-
-const hasDicebagsTable = await knex.schema.hasTable('dicebags')
-if (!hasDicebagsTable) {
-  await knex.schema.createTable('dicebags', t => {
-    t.string('slug').unique()
-    t.string('hash').unique()
-    t.string('guild')
-    t.string('owner')
-    t.integer('series') // Series starts at 0 in code but 1 in presentation
-    t.integer('number') // ID Within the Series
-    t.string('color')
-    t.string('gimmick')
-    t.string('material')
-    t.string('specialType')
-    t.string('size')
-    t.string('faceCount')
-    t.jsonb('faces')
-    t.text('notes')
-  })
-}
+const globals = new PouchDb('globals')
+const dicebags = new PouchDb('dicebags')
 
 const colors = [
   'red',
@@ -90,10 +55,11 @@ const faceCounts = [
 
 async function diceExists (guild, hash, series) {
   const number = parseInt(hash.substring(0, 2), 16) + 255 * series
-  const res = await knex('dicebags')
-    .where({ number, guild, series })
-    .first()
-  return !!res
+  const res = await dicebags.find({
+    selector: { number, guild, series }
+  })
+
+  return res.docs.length > 0
 }
 
 function getDiceData (hash) {
@@ -152,14 +118,17 @@ function getDiceData (hash) {
     diceData.notes = `- It is actually a ${faceCalcs.symbols(0)}!\n`
     return diceData
   }
-  if (diceData.gimmick == 'glows in the dark')
+  if (diceData.gimmick === 'glows in the dark') {
     diceData.notes += `- It glows ${colors[indexes.get(5) % colors.length]}! \n`
-  if (diceData.gimmick == 'glitters')
+  }
+  if (diceData.gimmick === 'glitters') {
     diceData.notes += `- It glitters ${
       colors[indexes.get(5) % colors.length]
     }! \n`
-  if (diceData.gimmick == 'object inside')
+  }
+  if (diceData.gimmick === 'object inside') {
     diceData.notes += `- The object inside is a ${faceCalcs.symbols(0)}! \n`
+  }
 
   for (let i = 0; i < diceData.faceCount; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
@@ -175,31 +144,24 @@ client.on('guildCreate', async guild => {
   const salt = hasher
     .hash(Buffer.from(`${Math.random()}`, 'utf8'))
     .toString('hex')
-  return await knex('globals')
-    .insert({
-      guild: guild.id,
-      salt: salt,
-      series: 0
-    })
-    .onConflict('guild')
-    .ignore()
+  globals.put({
+    _id: guild.id,
+    salt: salt,
+    series: 0
+  })
 })
 
 client.on('message', async msg => {
   if (msg.author.bot) return
 
-  const { series, salt, last_winner, last_messenger, updated_at } = await knex(
-    'globals'
-  )
-    .where('guild', msg.guild.id)
-    .first()
+  let guildData = await globals.get(msg.guild.id)
+  const { series, salt, lastWinner, lastMessenger } = guildData
+  if (msg.author.id === lastMessenger) return
+  guildData.lastMessenger = msg.author.id
+  guildData = await globals.put(guildData)
 
-  if (msg.author.id === last_messenger) return
-  await knex('globals')
-    .where('guild', msg.guild.id)
-    .update('last_messenger', msg.author.id)
+  if (msg.author.id === lastWinner) return
 
-  if (msg.author.id === last_winner) return
   const hash = hasher
     .hash(Buffer.from(msg.content + salt, 'utf8'))
     .toString('hex')
@@ -213,13 +175,12 @@ client.on('message', async msg => {
   diceData.owner = msg.member.id
   diceData.series = series
   diceData.guild = msg.guild.id
-  diceData.slug = cuid.slug()
+  diceData._id = cuid.slug()
 
-  await knex('dicebags').insert(diceData)
+  guildData.lastWinner = msg.author.id
 
-  await knex('globals')
-    .where('guild', msg.guild.id)
-    .update('last_winner', msg.author.id)
+  await dicebags.put(diceData)
+  await globals.put(guildData)
 
   return msg.reply('You won!')
 })

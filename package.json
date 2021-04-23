@@ -10,11 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "an-array-of-english-words": "^2.0.0",
+    "cuid": "^2.1.8",
     "debug": "^4.3.1",
     "discord.js": "^12.5.3",
     "dotenv": "^8.2.0",
-    "knex": "^0.95.4",
-    "sqlite3": "^5.0.2",
+    "pouchdb-node": "^7.2.2",
     "xxhash-addon": "^1.4.0"
   }
 }
