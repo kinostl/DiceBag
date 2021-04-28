@@ -1,0 +1,25 @@
+doctype html
+html
+  head 
+    title Dicebags 
+    link(
+      rel='stylesheet'
+      href="https://cdn.jsdelivr.net/npm/picnic"
+    )
+
+  body 
+    nav 
+      a.brand(href="#") DiceBags
+      input.show(id="bmenub" type="checkbox")
+      label.burger.pseudo.button(for="bmenub") menu
+      .menu
+        a.pseudo.button.icon-picture(href="#") Demo
+        a.button.icon-puzzle(href="#") Plugins
+
+    main(style={
+        'margin-top':'80px',
+        'width': '90%',
+        'margin-left': 'auto',
+        'margin-right': 'auto'
+      })
+      block content 

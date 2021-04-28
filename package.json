@@ -18,7 +18,7 @@
     "express": "^4.17.1",
     "pouchdb-find": "^7.2.2",
     "pouchdb-node": "^7.2.2",
-    "tossr": "^1.4.2",
+    "pug": "^3.0.2",
     "xxhash-addon": "^1.4.0"
   }
 }

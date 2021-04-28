@@ -1,5 +1,4 @@
 import { XXHash128 } from 'xxhash-addon'
-import { tossr } from 'tossr'
 import dic from './dictionary.js'
 import phrases from './phrases.js'
 import emojis from './emoji.js'
@@ -13,6 +12,7 @@ import cors from 'cors'
 PouchDb.plugin(PouchDbFind)
 const app = express()
 app.use(cors())
+app.set('view engine', 'pug')
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
@@ -193,27 +193,22 @@ client.on('message', async msg => {
   return msg.reply('You won!')
 })
 
-app.get('/api/guilds/:id', async (req, res) => {
+// Display information about a guild such as last winner, and act as a larger dice gallery
+app.get('/guilds/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  return res.json(guild)
+  return res.render('guild', { guild })
 })
-app.get('/api/dicebags/:profile/:id', async (req, res) => {
+
+// Display detailed information about a specific dice belonging to a user
+app.get('/dicebags/:profile/:id', async (req, res) => {
   const dice = await diceBags.get(req.params.id)
-  return res.json(dice)
+  return res.render('dice_detail', { dice })
 })
 
-app.get('/api/dicebags/:profile', async (req, res) => {
-  const dice = await diceBags.find({
-    selector: { hash: { $exists: true } },
-    fields: ['_id', 'hash', 'number', 'series', 'faceCount', 'size']
-  })
-  if (dice.warning) console.warn(dice.warning)
-  return res.json(dice.docs)
-})
-
-app.get('*', async (req, res) => {
-  const html = await tossr(req.url)
-  res.send(html)
+// Display list of all dice with shortened information
+app.get('/dicebags/:profile', async (req, res) => {
+  const dice = await diceBags.allDocs()
+  return res.render('profile', { dice })
 })
 
 client.login(process.env.DISCORD_TOKEN)
