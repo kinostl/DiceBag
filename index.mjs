@@ -196,25 +196,25 @@ client.on('message', async msg => {
 // Display a list of a user's guilds with information about the guild such as last winner. Only usable while logged in and only shows the user their own guilds.
 app.get('/guilds/', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  return res.render('guild', { guild })
+  return res.render('guild/list', { guild })
 })
 
 // Display information about a guild such as last winner, and act as a larger dice gallery
 app.get('/guilds/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  return res.render('guild', { guild })
+  return res.render('guild/view', { guild })
 })
 
 // Display detailed information about a specific dice belonging to a user
 app.get('/dicebags/:profile/:id', async (req, res) => {
   const dice = await diceBags.get(req.params.id)
-  return res.render('dice_detail', { dice })
+  return res.render('dice/view', { dice })
 })
 
 // Display list of all dice with shortened information
 app.get('/dicebags/:profile', async (req, res) => {
   const dice = await diceBags.allDocs()
-  return res.render('profile', { dice })
+  return res.render('dice/list', { dice })
 })
 
 app.get('/', (req, res) => {
