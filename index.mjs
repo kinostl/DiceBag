@@ -193,6 +193,12 @@ client.on('message', async msg => {
   return msg.reply('You won!')
 })
 
+// Display a list of a user's guilds with information about the guild such as last winner. Only usable while logged in and only shows the user their own guilds.
+app.get('/guilds/', async (req, res) => {
+  const guild = await guildDatas.get(req.params.id)
+  return res.render('guild', { guild })
+})
+
 // Display information about a guild such as last winner, and act as a larger dice gallery
 app.get('/guilds/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
@@ -209,6 +215,15 @@ app.get('/dicebags/:profile/:id', async (req, res) => {
 app.get('/dicebags/:profile', async (req, res) => {
   const dice = await diceBags.allDocs()
   return res.render('profile', { dice })
+})
+
+app.get('/', (req, res) => {
+  return res.render('welcome')
+})
+
+app.all((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
 })
 
 client.login(process.env.DISCORD_TOKEN)
