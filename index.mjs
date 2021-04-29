@@ -208,6 +208,9 @@ app.get('/guilds/:id', async (req, res) => {
 // Display detailed information about a specific dice belonging to a user
 app.get('/dicebags/:profile/:id', async (req, res) => {
   const dice = await diceBags.get(req.params.id)
+  if (dice.owner !== req.params.profile) {
+    return res.redirect(`/dicebags/${dice.owner}/${req.params.id}`)
+  }
   return res.render('dice/view', { dice })
 })
 
@@ -221,9 +224,9 @@ app.get('/', (req, res) => {
   return res.render('welcome')
 })
 
-app.all((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).send('Something broke!')
+app.use((error, req, res, next) => {
+  console.error(error)
+  res.status(error.status || 500).render('error', { error })
 })
 
 client.login(process.env.DISCORD_TOKEN)

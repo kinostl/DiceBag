@@ -4,22 +4,38 @@ html
     title Dicebags 
     link(
       rel='stylesheet'
-      href="https://cdn.jsdelivr.net/npm/picnic"
+      href='https://unpkg.com/bulmaswatch/default/bulmaswatch.min.css'
+      media='screen and (prefers-color-scheme: light)'
+    )
+    link(
+      rel='stylesheet'
+      href='https://unpkg.com/bulmaswatch/superhero/bulmaswatch.min.css'
+      media='screen and (prefers-color-scheme: dark)'
     )
 
   body 
-    nav 
-      a.brand(href="#") DiceBags
-      input.show(id="bmenub" type="checkbox")
-      label.burger.pseudo.button(for="bmenub") menu
-      .menu
-        a.pseudo.button.icon-picture(href="#") 📮 Guilds
-        a.pseudo.button.icon-picture(href="#") 🎲 Dice
+    nav.navbar
+      .navbar-brand
+        a.navbar-item(href="#") DiceBags
+        a.navbar-burger(role="button", data-target="navbarData", onclick="toggleActive()") 
+          span(aria-hidden="true")
+          span(aria-hidden="true")
+          span(aria-hidden="true")
+      menu#navbarData.navbar-menu
+        .navbar-end
+          a.navbar-item(href="#") 📮 Guilds
+          a.navbar-item(href="#") 🎲 Dice
 
     main(style={
-        'margin-top':'80px',
-        'width': '90%',
+        'margin-top': '1rem',
+        'max-width': '90%',
         'margin-left': 'auto',
         'margin-right': 'auto'
       })
       block content 
+
+script.
+  function toggleActive () {
+    const elem = document.getElementById('navbarData')
+    elem.classList.toggle('is-active')
+  }

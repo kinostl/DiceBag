@@ -1,11 +1,6 @@
 extends ../layout.pug
 block content
   h1 Dice 
-  article.card 
-    header
-      h3= guild._id 
-    b Last Winner
-    span= guild.lastWinner
-
-    b Last Messenger
-    span= guild.lastMessenger
+  ul 
+    each die in dice
+      pre= JSON.stringify(die,null,4)

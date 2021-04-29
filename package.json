@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node -r dotenv/config index.mjs"
   },
   "author": "",
   "license": "ISC",
@@ -15,7 +16,7 @@
     "debug": "^4.3.1",
     "discord.js": "^12.5.3",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "github:expressjs/express#5.0",
     "pouchdb-find": "^7.2.2",
     "pouchdb-node": "^7.2.2",
     "pug": "^3.0.2",
