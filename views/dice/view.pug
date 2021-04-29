@@ -22,7 +22,7 @@ block content
         .message-header 
           p Dicey Details
         .message-body
-          ul 
+          ul
             li 
               b Face Count 
               span= dice.faceCount
@@ -46,8 +46,32 @@ block content
               span= dice.faces.join()
             li 
               p= dice.hash
+  ul.dice_history
+    li 
+      p This is a list
+    li
+      p of every roll
+    li 
+      p that this dice has made
+    li 
+      p by who
+    li 
+      p and where at
+    li 
+      p or maybe it will be
+    li 
+      p a trade history
+    li 
+      p que no los dos
   style. 
     ul>li>span{
       float: right;
       text-transform: capitalize;
+    }
+
+    .dice_history > li {
+      background-color: white;
+      color: black;
+      margin: 0.5rem;
+      padding: 0.5rem;
     }
