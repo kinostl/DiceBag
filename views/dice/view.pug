@@ -39,7 +39,10 @@ block content
   .flex-container
     .other_info.flex-child
       h2.title.main_title= dice.name
-      span.faces= dice.faces.map((curr)=>`[${curr}]`).join(' ')
+      if dice.faces.length
+        span.faces= dice.faces.map((curr)=>`[${curr}]`).join(' ')
+      else
+        span.faces This is not a dice!
       a(href=`/guilds/${dice.series}`)
         h4.title Series 
           span.subtitle= dice.series
@@ -75,6 +78,11 @@ block content
         section 
           b Dice Class 
           span= dice.specialType
+      if dice.notes.length
+        hr
+        ul
+          each note in dice.notes
+            li= note
       hr
       section 
         span= dice.hash

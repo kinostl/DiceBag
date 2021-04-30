@@ -129,7 +129,8 @@ function getDiceData (hash) {
   faceCalcs.slurry = i => faceCalcs[specialTypes[i % specialTypes.length]](i)
 
   diceData.faces = []
-  diceData.notes = ''
+  diceData.notes = []
+  diceData.name = haiku.haikunate()
 
   if (diceData.faceCount === 0) {
     diceData.specialType = 'invisible'
@@ -139,29 +140,25 @@ function getDiceData (hash) {
 
   if (diceData.faceCount === 1) {
     diceData.specialType = 'not a dice'
-    diceData.faces[0] = ' '
-    diceData.notes += `- It is actually a ${faceCalcs.symbols(0)}!\n`
+    diceData.notes.push(`It is actually a ${faceCalcs.symbols(0)}!`)
     return diceData
   }
   if (diceData.gimmick === 'glows in the dark') {
-    diceData.notes += `- It glows ${colors[indexes.get(5) % colors.length]}! \n`
+    diceData.notes.push(`It glows ${colors[indexes.get(5) % colors.length]}!`)
   }
   if (diceData.gimmick === 'glitters') {
-    diceData.notes += `- It glitters ${
-      colors[indexes.get(5) % colors.length]
-    }! \n`
+    diceData.notes.push(
+      `It glitters ${colors[indexes.get(5) % colors.length]}!`
+    )
   }
   if (diceData.gimmick === 'object inside') {
-    diceData.notes += `- The object inside is a ${faceCalcs.symbols(0)}! \n`
+    diceData.notes.push(`The object inside is a ${faceCalcs.symbols(0)}!`)
   }
-
-  diceData.notes = diceData.notes ? diceData.notes : null
 
   for (let i = 0; i < diceData.faceCount; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
   }
 
-  diceData.name = haiku.haikunate()
   return diceData
 }
 
@@ -255,6 +252,41 @@ if (isDev) {
     member: { id: '1' },
     guild: { id: '1' },
     content: 'WaveDasher Was Here',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'One',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Two',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Three',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Four',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Five',
     reply: console.log
   })
 }
