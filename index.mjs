@@ -216,7 +216,19 @@ app.get('/dicebags/:profile/:id', async (req, res) => {
 
 // Display list of all dice with shortened information
 app.get('/dicebags/:profile', async (req, res) => {
-  const dice = await diceBags.allDocs()
+  const dice = await diceBags.find({
+    selector: {
+      owner: req.params.profile
+    }
+  })
+  dice.docs = [
+    dice.docs[0],
+    dice.docs[0],
+    dice.docs[0],
+    dice.docs[0],
+    dice.docs[0],
+    dice.docs[0]
+  ]
   return res.render('dice/list', { dice })
 })
 

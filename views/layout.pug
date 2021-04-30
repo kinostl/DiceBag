@@ -12,6 +12,15 @@ html
       href='https://unpkg.com/bulmaswatch/default/bulmaswatch.min.css'
       media='screen and (prefers-color-scheme: light)'
     )
+    style.
+      main{
+        margin-top: 1rem;
+        max-width: 1140px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 1rem;
+      }
+    block style
 
   body 
     nav.navbar
@@ -26,13 +35,7 @@ html
           a.navbar-item(href="#") 📮 Guilds
           a.navbar-item(href="#") 🎲 Dice
 
-    main(style={
-        'margin-top': '1rem',
-        'max-width': '1140px',
-        'margin-left': 'auto',
-        'margin-right': 'auto',
-        'padding': '1rem'
-      })
+    main
       block content 
 
 script.

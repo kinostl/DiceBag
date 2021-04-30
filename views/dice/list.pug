@@ -1,6 +1,62 @@
 extends ../layout.pug
+block style
+  style.
+    .dice_list{
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .dice_list_item{
+      width: max-content;
+      padding: 1em;
+    }
+    main{
+      max-width: max-content;
+    }
+
 block content
-  h1 Dice 
-  ul 
-    each die in dice
-      pre= JSON.stringify(die,null,4)
+  h1.title(style={'max-width':'1140px','margin-left':'auto','margin-right':'auto'}) #{dice.docs[0].owner}'s Dice
+  ul.dice_list
+    each die in dice.docs
+      li.dice_list_item
+        a(href=`/dicebags/${die.owner}/${die._id}`)
+          article.message
+            .message-header
+              p= die.hash
+            .message-body
+              ul 
+                li
+                  b Guild 
+                  span= die.guild
+                li
+                  b Series 
+                  span= die.series
+                li
+                  b Number 
+                  span= die.number
+                li
+                  b Owner 
+                  span= die.owner
+                li 
+                  b Face Count 
+                  span= die.faceCount
+                li 
+                  b Size 
+                  span= die.size
+                li 
+                  b Gimmick 
+                  span= die.gimmick
+                li 
+                  b Color 
+                  span= die.color
+                li 
+                  b Material 
+                  span= die.material
+                li 
+                  b Dice Class 
+                  span= die.specialType
+                li
+                  b Faces 
+                  span= die.faces.join()

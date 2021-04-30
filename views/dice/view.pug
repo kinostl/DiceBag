@@ -1,12 +1,26 @@
 extends ../layout.pug
 
+block style
+  style. 
+    ul>li>span{
+      float: right;
+      text-transform: capitalize;
+    }
+
+    .dice_history > li {
+      background-color: white;
+      color: black;
+      margin: 0.5rem;
+      padding: 0.5rem;
+    }
+
 block content
   .is-pulled-left
   .level 
     .level-left
       ul 
         li
-          h4.title Guild 
+          h4.title  
             span.subtitle= dice.guild
         li
           h4.title Series 
@@ -15,8 +29,9 @@ block content
           h4.title Number 
             span.subtitle= dice.number
         li
-          h4.title Owner 
-            span.subtitle= dice.owner
+          a(href=`/dicebags/${dice.owner}`)
+            h4.title Owner 
+              span.subtitle= dice.owner
     .level-right
       article.message
         .message-header 
@@ -63,15 +78,3 @@ block content
       p a trade history
     li 
       p que no los dos
-  style. 
-    ul>li>span{
-      float: right;
-      text-transform: capitalize;
-    }
-
-    .dice_history > li {
-      background-color: white;
-      color: black;
-      margin: 0.5rem;
-      padding: 0.5rem;
-    }
