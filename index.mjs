@@ -132,17 +132,6 @@ function getDiceData (hash) {
   diceData.notes = []
   diceData.name = haiku.haikunate()
 
-  if (diceData.faceCount === 0) {
-    diceData.specialType = 'invisible'
-    diceData.faces[0] = ' '
-    return diceData
-  }
-
-  if (diceData.faceCount === 1) {
-    diceData.specialType = 'not a dice'
-    diceData.notes.push(`It is actually a ${faceCalcs.symbols(0)}!`)
-    return diceData
-  }
   if (diceData.gimmick === 'glows in the dark') {
     diceData.notes.push(`It glows ${colors[indexes.get(5) % colors.length]}!`)
   }
@@ -153,6 +142,18 @@ function getDiceData (hash) {
   }
   if (diceData.gimmick === 'object inside') {
     diceData.notes.push(`The object inside is a ${faceCalcs.symbols(0)}!`)
+  }
+
+  if (diceData.faceCount === 0) {
+    diceData.specialType = 'invisible'
+    diceData.faces[0] = ' '
+    return diceData
+  }
+
+  if (diceData.faceCount === 1) {
+    diceData.specialType = 'not a dice'
+    diceData.notes.push(`It is actually a ${faceCalcs.symbols(1)}!`)
+    return diceData
   }
 
   for (let i = 0; i < diceData.faceCount; i++) {
