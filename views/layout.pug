@@ -1,20 +1,25 @@
 doctype html
 html
   head 
-    title Dicebags 
+    block title
+      title Dicebags 
     link(
       rel='stylesheet'
-      href='https://unpkg.com/bulmaswatch/superhero/bulmaswatch.min.css'
+      href='/static/dark.css'
       media='screen and (prefers-color-scheme: dark)'
     )
     link(
       rel='stylesheet'
-      href='https://unpkg.com/bulmaswatch/default/bulmaswatch.min.css'
+      href='/static/light.css'
       media='screen and (prefers-color-scheme: light)'
+    )
+    link(
+      rel='stylesheet'
+      href='/static/paper.css'
     )
     style.
       main{
-        margin-top: 1rem;
+        margin-top: 5rem;
         max-width: 1140px;
         margin-left: auto;
         margin-right: auto;
@@ -23,23 +28,16 @@ html
     block style
 
   body 
-    nav.navbar
-      .navbar-brand
-        a.navbar-item(href="#") DiceBags
-        a.navbar-burger(role="button", data-target="navbarData", onclick="toggleActive()") 
-          span(aria-hidden="true")
-          span(aria-hidden="true")
-          span(aria-hidden="true")
-      menu#navbarData.navbar-menu
-        .navbar-end
-          a.navbar-item(href="#") 📮 Guilds
-          a.navbar-item(href="#") 🎲 Dice
+    nav.border.fixed.split-nav
+      .nav-brand
+        h3: a.navbar-item(href="#") DiceBags
+      .collapsible 
+        input(type="checkbox" id="collapsible1" name="collapsible1")
+        label(for="collapsible1") +
+        .collapsible-body
+          ul.inline
+            li: a(href="#") 📮 Guilds
+            li: a(href="#") 🎲 Dice
 
     main
       block content 
-
-script.
-  function toggleActive () {
-    const elem = document.getElementById('navbarData')
-    elem.classList.toggle('is-active')
-  }

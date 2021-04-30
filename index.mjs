@@ -4,21 +4,37 @@ import phrases from './phrases.js'
 import emojis from './emoji.js'
 import Discord from 'discord.js'
 import PouchDb from 'pouchdb-node'
+import PouchDbMemory from 'pouchdb-adapter-memory'
 import PouchDbFind from 'pouchdb-find'
+import Haikunator from 'haikunator'
 import express from 'express'
 import cuid from 'cuid'
 import cors from 'cors'
 
 PouchDb.plugin(PouchDbFind)
+PouchDb.plugin(PouchDbMemory)
 const app = express()
 app.use(cors())
 app.set('view engine', 'pug')
+app.use('/static', express.static('static'))
+
+const isDev = process.env.NODE_ENV === 'dev'
+if (isDev) console.log('Development Mode')
 
 const client = new Discord.Client()
 const hasher = new XXHash128()
-const guildDatas = new PouchDb('db/guildData')
-const diceBags = new PouchDb('db/diceBags')
+const guildDatas = new PouchDb(
+  'db/guildData',
+  isDev ? { adapter: 'memory' } : null
+)
+const diceBags = new PouchDb(
+  'db/diceBags',
+  isDev ? { adapter: 'memory' } : null
+)
 
+const haiku = new Haikunator({
+  defaults: { tokenLength: 0, delimiter: ' ' }
+})
 const colors = [
   'red',
   'orange',
@@ -61,10 +77,10 @@ const faceCounts = [
   120
 ]
 
-async function diceExists (guild, hash, series) {
+async function diceExists (guild, hash, set) {
   const number = parseInt(hash.substring(0, 2), 16)
   const res = await diceBags.find({
-    selector: { number, guild, series }
+    selector: { number, guild, set }
   })
 
   return res.docs.length > 0
@@ -113,6 +129,7 @@ function getDiceData (hash) {
   faceCalcs.slurry = i => faceCalcs[specialTypes[i % specialTypes.length]](i)
 
   diceData.faces = []
+  diceData.notes = ''
 
   if (diceData.faceCount === 0) {
     diceData.specialType = 'invisible'
@@ -123,7 +140,7 @@ function getDiceData (hash) {
   if (diceData.faceCount === 1) {
     diceData.specialType = 'not a dice'
     diceData.faces[0] = ' '
-    diceData.notes = `- It is actually a ${faceCalcs.symbols(0)}!\n`
+    diceData.notes += `- It is actually a ${faceCalcs.symbols(0)}!\n`
     return diceData
   }
   if (diceData.gimmick === 'glows in the dark') {
@@ -138,9 +155,13 @@ function getDiceData (hash) {
     diceData.notes += `- The object inside is a ${faceCalcs.symbols(0)}! \n`
   }
 
+  diceData.notes = diceData.notes ? diceData.notes : null
+
   for (let i = 0; i < diceData.faceCount; i++) {
     diceData.faces[i] = faceCalcs[diceData.specialType](i)
   }
+
+  diceData.name = haiku.haikunate()
   return diceData
 }
 
@@ -148,41 +169,45 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on('guildCreate', async guild => {
-  const salt = hasher
-    .hash(Buffer.from(`${Math.random()}`, 'utf8'))
-    .toString('hex')
+async function processJoinGuild (guild) {
+  const salt = isDev
+    ? ''
+    : hasher.hash(Buffer.from(`${Math.random()}`, 'utf8')).toString('hex')
   guildDatas.put({
     _id: guild.id,
     salt: salt,
-    series: 1
+    name: haiku.haikunate(),
+    set: 1
   })
-})
+}
 
-client.on('message', async msg => {
+client.on('guildCreate', processJoinGuild)
+
+async function processMsg (msg) {
   if (msg.author.bot) return
 
   const guildData = await guildDatas.get(msg.guild.id)
-  const { series, salt, lastWinner, lastMessenger } = guildData
+  const { set, salt, lastWinner, lastMessenger } = guildData
   // if (msg.author.id === lastMessenger) return
   // guildData.lastMessenger = msg.author.id
   // guildData = await globals.put(guildData)
 
-  if (msg.author.id === lastWinner) return
+  //if (msg.author.id === lastWinner) return
 
   const hash = hasher
     .hash(Buffer.from(msg.content + salt, 'utf8'))
     .toString('hex')
 
-  if (hash.charAt(6) !== hash.charAt(9)) return
+  //if (hash.charAt(6) !== hash.charAt(9)) return
 
-  const diceDoesExist = await diceExists(msg.guild.id, hash, series)
+  const diceDoesExist = await diceExists(msg.guild.id, hash, set)
   if (diceDoesExist) return
 
   const diceData = getDiceData(hash)
   diceData.owner = msg.member.id
-  diceData.series = series
-  diceData.guild = msg.guild.id
+  diceData.author = msg.member.id
+  diceData.set = set
+  diceData.series = msg.guild.id
   diceData._id = cuid.slug()
 
   guildData.lastWinner = msg.author.id
@@ -191,7 +216,48 @@ client.on('message', async msg => {
   await guildDatas.put(guildData)
 
   return msg.reply('You won!')
-})
+}
+
+client.on('message', processMsg)
+
+if (isDev) {
+  await processJoinGuild({ id: '1' })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Hello World',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Hello Moon',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Minty Tech',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'Merry Mancer Games',
+    reply: console.log
+  })
+  await processMsg({
+    author: { id: '1' },
+    member: { id: '1' },
+    guild: { id: '1' },
+    content: 'WaveDasher Was Here',
+    reply: console.log
+  })
+}
 
 // Display a list of a user's guilds with information about the guild such as last winner. Only usable while logged in and only shows the user their own guilds.
 app.get('/guilds/', async (req, res) => {
@@ -221,14 +287,6 @@ app.get('/dicebags/:profile', async (req, res) => {
       owner: req.params.profile
     }
   })
-  dice.docs = [
-    dice.docs[0],
-    dice.docs[0],
-    dice.docs[0],
-    dice.docs[0],
-    dice.docs[0],
-    dice.docs[0]
-  ]
   return res.render('dice/list', { dice })
 })
 

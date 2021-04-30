@@ -2,79 +2,88 @@ extends ../layout.pug
 
 block style
   style. 
-    ul>li>span{
+    .flex-container{
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .dice_details > section > span {
       float: right;
       text-transform: capitalize;
     }
 
-    .dice_history > li {
-      background-color: white;
-      color: black;
-      margin: 0.5rem;
+    .dice_list_item{
+      width: max-content;
       padding: 0.5rem;
+    }
+    a>h4{
+      text-decoration: underline wavy;
+    }
+    .dice_title{
+      text-align: center;
+      font-weight: bold;
+    }
+    .faces{
+      text-transform: capitalize;
+      padding-bottom: 1rem;
+    }
+    .other_info{
+      max-width: min-content;
+      min-width: 50%;
+    }
+    .main_title{
+      text-decoration: underline;
     }
 
 block content
-  .is-pulled-left
-  .level 
-    .level-left
-      ul 
-        li
-          h4.title  
-            span.subtitle= dice.guild
-        li
-          h4.title Series 
-            span.subtitle= dice.series
-        li
-          h4.title Number 
-            span.subtitle= dice.number
-        li
-          a(href=`/dicebags/${dice.owner}`)
-            h4.title Owner 
-              span.subtitle= dice.owner
-    .level-right
-      article.message
-        .message-header 
-          p Dicey Details
-        .message-body
-          ul
-            li 
-              b Face Count 
-              span= dice.faceCount
-            li 
-              b Size 
-              span= dice.size
-            li 
-              b Gimmick 
-              span= dice.gimmick
-            li 
-              b Color 
-              span= dice.color
-            li 
-              b Material 
-              span= dice.material
-            li 
-              b Dice Class 
-              span= dice.specialType
-            li
-              b Faces 
-              span= dice.faces.join()
-            li 
-              p= dice.hash
-  ul.dice_history
-    li 
-      p This is a list
-    li
-      p of every roll
-    li 
-      p that this dice has made
-    li 
-      p by who
-    li 
-      p and where at
-    li 
-      p or maybe it will be
-    li 
-      p a trade history
-    li 
-      p que no los dos
+  .flex-container
+    .other_info.flex-child
+      h2.title.main_title= dice.name
+      span.faces= dice.faces.map((curr)=>`[${curr}]`).join(' ')
+      a(href=`/guilds/${dice.series}`)
+        h4.title Series 
+          span.subtitle= dice.series
+      h4.title Set 
+        span.subtitle= dice.set
+      h4.title Number 
+        span.subtitle= dice.number
+      a(href=`/dicebags/${dice.owner}`)
+        h4.title Owner 
+          span.subtitle= dice.owner
+      a(href=`/dicebags/${dice.owner}`)
+        h4.title Author 
+          span.subtitle= dice.author
+    article.paper.dice_list_item.flex_child
+      h4.dice_title Dicey Details
+      hr
+      .dice_details
+        section
+          b Face Count 
+          span= dice.faceCount
+        section 
+          b Size 
+          span= dice.size
+        section 
+          b Gimmick 
+          span= dice.gimmick
+        section 
+          b Color 
+          span= dice.color
+        section 
+          b Material 
+          span= dice.material
+        section 
+          b Dice Class 
+          span= dice.specialType
+      hr
+      section 
+        span= dice.hash
+  .dice_history
+    p.paper This is a list
+    p.paper of every roll
+    p.paper that this dice has made
+    p.paper by who
+    p.paper and where at
+    p.paper or maybe it will be
+    p.paper a trade history
+    p.paper que no los dos

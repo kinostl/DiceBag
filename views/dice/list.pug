@@ -10,7 +10,18 @@ block style
     }
     .dice_list_item{
       width: max-content;
-      padding: 1em;
+      padding: 0.5rem;
+    }
+    .dice_details > section > span{
+      float: right;
+      text-align: right;
+      text-transform: capitalize;
+    }
+    .faces > span {
+      overflow: clip;
+      max-width: 18ch;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     main{
       max-width: max-content;
@@ -18,45 +29,33 @@ block style
 
 block content
   h1.title(style={'max-width':'1140px','margin-left':'auto','margin-right':'auto'}) #{dice.docs[0].owner}'s Dice
-  ul.dice_list
+  .dice_list
     each die in dice.docs
-      li.dice_list_item
+      .dice_list_item
         a(href=`/dicebags/${die.owner}/${die._id}`)
-          article.message
-            .message-header
-              p= die.hash
-            .message-body
-              ul 
-                li
-                  b Guild 
-                  span= die.guild
-                li
-                  b Series 
-                  span= die.series
-                li
-                  b Number 
-                  span= die.number
-                li
-                  b Owner 
-                  span= die.owner
-                li 
+          article.paper.card
+            .card-body
+              h4.card-title= die.name
+              h5.card-subtitle= die.hash
+              .dice_details
+                section
                   b Face Count 
                   span= die.faceCount
-                li 
+                section 
                   b Size 
                   span= die.size
-                li 
+                section 
                   b Gimmick 
                   span= die.gimmick
-                li 
+                section 
                   b Color 
                   span= die.color
-                li 
+                section 
                   b Material 
                   span= die.material
-                li 
+                section 
                   b Dice Class 
                   span= die.specialType
-                li
+                section.faces
                   b Faces 
-                  span= die.faces.join()
+                  span= die.faces.join(', ')
