@@ -145,8 +145,8 @@ function getDiceData (hash) {
   }
 
   if (diceData.faceCount === 0) {
-    diceData.specialType = 'invisible'
-    diceData.faces[0] = ' '
+    diceData.specialType = 'imaginary'
+    diceData.faces[0] = 'Anything You Want It To Be'
     return diceData
   }
 
