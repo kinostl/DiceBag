@@ -43,19 +43,19 @@ block content
         span.faces= dice.faces.map((curr)=>`[${curr}]`).join(' ')
       else
         span.faces This is not a dice!
-      a(href=`/guilds/${dice.seriesId}`)
+      a(href=`/series/${dice.seriesId}`)
         h4.title Series 
           span.subtitle= dice.series
       h4.title Set 
         span.subtitle= dice.set
       h4.title Number 
         span.subtitle= dice.number
-      a(href=`/dicebags/${dice.owner}`)
+      a(href=`/users/${dice.owner.id}`)
         h4.title Owner 
-          span.subtitle= dice.owner
-      a(href=`/dicebags/${dice.owner}`)
+          span.subtitle= dice.owner.name
+      a(href=`/users/${dice.owner.id}`)
         h4.title Author 
-          span.subtitle= dice.author
+          span.subtitle= dice.author.name
     article.paper.dice_list_item.flex_child
       h4.dice_title Dicey Details
       hr

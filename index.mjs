@@ -186,8 +186,8 @@ async function processMsg (msg) {
   if (diceDoesExist) return
 
   const diceData = getDiceData(hash)
-  diceData.owner = msg.member.id
-  diceData.author = msg.member.id
+  diceData.owner = msg.member
+  diceData.author = msg.member
   diceData.set = set
   diceData.series = guildData.name
   diceData.seriesId = guildData._id
@@ -204,105 +204,72 @@ async function processMsg (msg) {
 client.on('message', processMsg)
 
 if (isDev) {
+  let defaultInfo = {
+    author: { id: '1', name: 'Default' },
+    member: { id: '1', name: 'Default' },
+    guild: { id: '1' },
+    reply: console.log
+  }
   await processJoinGuild({ id: '1' })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Hello World',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Hello World'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Hello Moon',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Hello Moon'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Minty Tech',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Minty Tech'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Merry Mancer Games',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Merry Mancer Games'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'WaveDasher Was Here',
-    reply: console.log
+    ...defaultInfo,
+    content: 'WaveDasher Was Here'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'One',
-    reply: console.log
+    ...defaultInfo,
+    content: 'One'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Two',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Two'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Three',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Three'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Four',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Four'
   })
   await processMsg({
-    author: { id: '1' },
-    member: { id: '1' },
-    guild: { id: '1' },
-    content: 'Five',
-    reply: console.log
+    ...defaultInfo,
+    content: 'Five'
   })
 }
 
-// Display a list of a user's guilds with information about the guild such as last winner. Only usable while logged in and only shows the user their own guilds.
-app.get('/guilds/', async (req, res) => {
+// Display information about a serie such as last winner, and act as a larger dice gallery
+app.get('/series/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  return res.render('guild/list', { guild })
-})
-
-// Display information about a guild such as last winner, and act as a larger dice gallery
-app.get('/guilds/:id', async (req, res) => {
-  const guild = await guildDatas.get(req.params.id)
-  return res.render('guild/view', { guild })
+  return res.render('series/view', { guild })
 })
 
 // Display detailed information about a specific dice belonging to a user
-app.get('/dicebags/:profile/:id', async (req, res) => {
+app.get('/dicebags/:id', async (req, res) => {
   const dice = await diceBags.get(req.params.id)
-  if (dice.owner !== req.params.profile) {
-    return res.redirect(`/dicebags/${dice.owner}/${req.params.id}`)
-  }
   return res.render('dice/view', { dice })
 })
 
 // Display list of all dice with shortened information
-app.get('/dicebags/:profile', async (req, res) => {
+app.get('/users/:id', async (req, res) => {
   const dice = await diceBags.find({
     selector: {
-      owner: req.params.profile
+      'owner.id': req.params.id
     }
   })
   return res.render('dice/list', { dice })

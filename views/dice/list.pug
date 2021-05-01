@@ -28,11 +28,11 @@ block style
     }
 
 block content
-  h1.title(style={'max-width':'1140px','margin-left':'auto','margin-right':'auto'}) #{dice.docs[0].owner}'s Dice
+  h1.title(style={'max-width':'1140px','margin-left':'auto','margin-right':'auto'}) #{dice.docs[0].owner.name}'s Dice
   .dice_list
     each die in dice.docs
       .dice_list_item
-        a(href=`/dicebags/${die.owner}/${die._id}`)
+        a(href=`/dicebags/${die._id}`)
           article.paper.card
             .card-body
               h4.card-title= die.name
