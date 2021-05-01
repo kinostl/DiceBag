@@ -1,11 +1,8 @@
 extends ../layout.pug
 block content
-  h1 Guild 
-  article.card 
-    header
-      h3= guild._id 
-    b Last Winner
-    span= guild.lastWinner
+  h1= `${guild.name} series`
+  h4 Last Winner 
+    span= guild.lastWinner.name
 
-    b Last Messenger
-    span= guild.lastMessenger
+  h4 Last Messenger 
+    span= guild.lastMessenger.name

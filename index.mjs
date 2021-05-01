@@ -170,20 +170,22 @@ async function processMsg (msg) {
 
   const guildData = await getGuild(msg.guild.id)
   const { set, salt, lastWinner, lastMessenger } = guildData
-  // if (msg.author.id === lastMessenger) return
-  // guildData.lastMessenger = msg.author.id
-  // guildData = await globals.put(guildData)
-
-  //if (msg.author.id === lastWinner) return
-
   const hash = hasher
     .hash(Buffer.from(msg.content + salt, 'utf8'))
     .toString('hex')
+  if (!isDev) {
+    if (msg.author.id === lastMessenger.id) return
+    if (msg.author.id === lastWinner.id) return
+    if (hash.charAt(6) !== hash.charAt(9)) return
+  }
 
-  //if (hash.charAt(6) !== hash.charAt(9)) return
+  guildData.lastMessenger = msg.author
 
   const diceDoesExist = await diceExists(msg.guild.id, hash, set)
-  if (diceDoesExist) return
+  if (diceDoesExist) {
+    await guildDatas.put(guildData)
+    return
+  }
 
   const diceData = getDiceData(hash)
   diceData.owner = msg.member
@@ -193,7 +195,7 @@ async function processMsg (msg) {
   diceData.seriesId = guildData._id
   diceData._id = cuid.slug()
 
-  guildData.lastWinner = msg.author.id
+  guildData.lastWinner = msg.author
 
   await diceBags.put(diceData)
   await guildDatas.put(guildData)
