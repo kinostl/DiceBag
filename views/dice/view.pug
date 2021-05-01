@@ -43,7 +43,7 @@ block content
         span.faces= dice.faces.map((curr)=>`[${curr}]`).join(' ')
       else
         span.faces This is not a dice!
-      a(href=`/guilds/${dice.series}`)
+      a(href=`/guilds/${dice.seriesId}`)
         h4.title Series 
           span.subtitle= dice.series
       h4.title Set 

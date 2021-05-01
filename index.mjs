@@ -6,7 +6,6 @@ import Discord from 'discord.js'
 import PouchDb from 'pouchdb-node'
 import PouchDbMemory from 'pouchdb-adapter-memory'
 import PouchDbFind from 'pouchdb-find'
-import Haikunator from 'haikunator'
 import express from 'express'
 import cuid from 'cuid'
 import cors from 'cors'
@@ -32,9 +31,6 @@ const diceBags = new PouchDb(
   isDev ? { adapter: 'memory' } : null
 )
 
-const haiku = new Haikunator({
-  defaults: { tokenLength: 0, delimiter: ' ' }
-})
 const colors = [
   'red',
   'orange',
@@ -77,6 +73,237 @@ const faceCounts = [
   120
 ]
 
+const haikuAdjectives = [
+  'aged',
+  'ancient',
+  'autumn',
+  'billowing',
+  'bitter',
+  'black',
+  'blue',
+  'bold',
+  'broad',
+  'broken',
+  'calm',
+  'cold',
+  'cool',
+  'crimson',
+  'curly',
+  'damp',
+  'dark',
+  'dawn',
+  'delicate',
+  'divine',
+  'dry',
+  'empty',
+  'falling',
+  'fancy',
+  'flat',
+  'floral',
+  'fragrant',
+  'frosty',
+  'gentle',
+  'green',
+  'hidden',
+  'holy',
+  'icy',
+  'jolly',
+  'late',
+  'lingering',
+  'little',
+  'lively',
+  'long',
+  'lucky',
+  'misty',
+  'morning',
+  'muddy',
+  'mute',
+  'nameless',
+  'noisy',
+  'odd',
+  'old',
+  'orange',
+  'patient',
+  'plain',
+  'polished',
+  'proud',
+  'purple',
+  'quiet',
+  'rapid',
+  'raspy',
+  'red',
+  'restless',
+  'rough',
+  'round',
+  'royal',
+  'shiny',
+  'shrill',
+  'shy',
+  'silent',
+  'small',
+  'snowy',
+  'soft',
+  'solitary',
+  'sparkling',
+  'spring',
+  'square',
+  'steep',
+  'still',
+  'summer',
+  'super',
+  'sweet',
+  'throbbing',
+  'tight',
+  'tiny',
+  'twilight',
+  'wandering',
+  'weathered',
+  'white',
+  'wild',
+  'winter',
+  'wispy',
+  'withered',
+  'yellow',
+  'young'
+]
+
+const haikuNouns = [
+  'art',
+  'band',
+  'bar',
+  'base',
+  'bird',
+  'block',
+  'boat',
+  'bonus',
+  'bread',
+  'breeze',
+  'brook',
+  'bush',
+  'butterfly',
+  'cake',
+  'cell',
+  'cherry',
+  'cloud',
+  'credit',
+  'darkness',
+  'dawn',
+  'dew',
+  'disk',
+  'dream',
+  'dust',
+  'feather',
+  'field',
+  'fire',
+  'firefly',
+  'flower',
+  'fog',
+  'forest',
+  'frog',
+  'frost',
+  'glade',
+  'glitter',
+  'grass',
+  'hall',
+  'hat',
+  'haze',
+  'heart',
+  'hill',
+  'king',
+  'lab',
+  'lake',
+  'leaf',
+  'limit',
+  'math',
+  'meadow',
+  'mode',
+  'moon',
+  'morning',
+  'mountain',
+  'mouse',
+  'mud',
+  'night',
+  'paper',
+  'pine',
+  'poetry',
+  'pond',
+  'queen',
+  'rain',
+  'recipe',
+  'resonance',
+  'rice',
+  'river',
+  'salad',
+  'scene',
+  'sea',
+  'shadow',
+  'shape',
+  'silence',
+  'sky',
+  'smoke',
+  'snow',
+  'snowflake',
+  'sound',
+  'star',
+  'sun',
+  'sun',
+  'sunset',
+  'surf',
+  'term',
+  'thunder',
+  'tooth',
+  'tree',
+  'truth',
+  'union',
+  'unit',
+  'violet',
+  'voice',
+  'water',
+  'waterfall',
+  'wave',
+  'wildflower',
+  'wind',
+  'wood'
+]
+
+const haikuPlaces = [
+  'allotment',
+  'city',
+  'coast',
+  'conurbation',
+  'cul-de-sac',
+  'forest',
+  'garden',
+  'hamlet',
+  'land',
+  'park',
+  'plaza',
+  'reserve',
+  'safeguarded',
+  'space',
+  'suburb',
+  'town',
+  'village',
+  'wetlands',
+  'wood'
+]
+
+function haikuName (indexes, adjId, nounId, placeId) {
+  let name = []
+  if (adjId >= 0) {
+    name.push(
+      haikuAdjectives[indexes.get(adjId, 'small') % haikuAdjectives.length]
+    )
+  }
+  if (nounId >= 0) {
+    name.push(haikuNouns[indexes.get(nounId, 'small') % haikuNouns.length])
+  }
+  if (placeId >= 0) {
+    name.push(haikuPlaces[indexes.get(placeId, 'small') % haikuPlaces.length])
+  }
+  return name.join(' ')
+}
+
 async function diceExists (guild, hash, set) {
   const number = parseInt(hash.substring(0, 2), 16)
   const res = await diceBags.find({
@@ -86,10 +313,7 @@ async function diceExists (guild, hash, set) {
   return res.docs.length > 0
 }
 
-function getDiceData (hash) {
-  const diceData = {}
-  diceData.hash = hash
-
+function getIndexes (hash) {
   const indexes = {}
   indexes.tiny = hash.match(/.{1,1}/g).map(curr => parseInt(curr, 16)) // 16
   indexes.small = hash.match(/.{1,2}/g).map(curr => parseInt(curr, 16)) // 256
@@ -101,6 +325,14 @@ function getDiceData (hash) {
     if (size === 'small') return indexes.small[i] || indexes.get(i, 'tiny')
     if (size === 'tiny') return indexes.tiny[i] || i
   }
+  return indexes
+}
+
+function getDiceData (hash) {
+  const diceData = {}
+  const indexes = getIndexes(hash)
+
+  diceData.hash = hash
 
   diceData.number = indexes.get(0, 'small')
   diceData.faceCount = faceCounts[indexes.get(1, 'small') % faceCounts.length]
@@ -130,7 +362,7 @@ function getDiceData (hash) {
 
   diceData.faces = []
   diceData.notes = []
-  diceData.name = haiku.haikunate()
+  diceData.name = haikuName(indexes, 2, 3)
 
   if (diceData.gimmick === 'glows in the dark') {
     diceData.notes.push(`It glows ${colors[indexes.get(5) % colors.length]}!`)
@@ -171,20 +403,35 @@ async function processJoinGuild (guild) {
   const salt = isDev
     ? ''
     : hasher.hash(Buffer.from(`${Math.random()}`, 'utf8')).toString('hex')
+  const indexes = getIndexes(
+    hasher.hash(Buffer.from(guild.id, 'utf8')).toString('hex')
+  )
+  const name = haikuName(indexes, 0, 1, 2)
   guildDatas.put({
-    _id: guild.id,
+    _id: cuid.slug(),
+    guildId: guild.id,
     salt: salt,
-    name: haiku.haikunate(),
+    name: name,
     set: 1
   })
 }
 
 client.on('guildCreate', processJoinGuild)
 
+async function getGuild (guildId) {
+  const guildDataDocs = await guildDatas.find({
+    selector: {
+      guildId: guildId
+    }
+  })
+  const guildData = guildDataDocs.docs[0]
+  return guildData
+}
+
 async function processMsg (msg) {
   if (msg.author.bot) return
 
-  const guildData = await guildDatas.get(msg.guild.id)
+  const guildData = await getGuild(msg.guild.id)
   const { set, salt, lastWinner, lastMessenger } = guildData
   // if (msg.author.id === lastMessenger) return
   // guildData.lastMessenger = msg.author.id
@@ -205,7 +452,8 @@ async function processMsg (msg) {
   diceData.owner = msg.member.id
   diceData.author = msg.member.id
   diceData.set = set
-  diceData.series = msg.guild.id
+  diceData.series = guildData.name
+  diceData.seriesId = guildData._id
   diceData._id = cuid.slug()
 
   guildData.lastWinner = msg.author.id
