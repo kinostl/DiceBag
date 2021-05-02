@@ -1,4 +1,24 @@
 extends ../layout.pug
+block style 
+  style.
+    .miniDice{
+      max-width: max-content;
+      padding: 0.5rem;
+      margin: 0.5rem;
+    }
+    .setSection{
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    main{
+      max-width: max-content;
+    }
+    main > :not(.setSection){
+      max-width: 1140px;
+      margin-left: auto;
+      margin-right: auto;
+    }
 block content
   h1= `${guild.name} series`
   h4 Last Winner 
@@ -6,3 +26,15 @@ block content
 
   h4 Last Messenger 
     span= guild.lastMessenger.name
+  each set, setNum in sets
+    h2 Set #{setNum+1}
+    .setSection
+      each die in set
+        .paper.miniDice
+          span ##{die.number} - 
+          span #{die.name}
+          hr
+          span #{die.faceCount} Faces, 
+          span #{die.size}, 
+          span #{die.specialType}, 
+          span #{die.color}

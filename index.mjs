@@ -31,6 +31,22 @@ const diceBags = new PouchDb(
   isDev ? { adapter: 'memory' } : null
 )
 
+await guildDatas.createIndex({
+  index: { fields: ['guildId'] }
+})
+
+await guildDatas.createIndex({
+  index: { fields: ['guildId', 'set', 'number'] }
+})
+
+await diceBags.createIndex({
+  index: { fields: ['number'], ddoc: 'diceBagsDesigns', name: 'sortByNumber' }
+})
+
+await diceBags.createIndex({
+  index: { fields: ['set', 'seriesId'] }
+})
+
 import {
   colors,
   gimmicks,
@@ -42,9 +58,9 @@ import {
 import haikuName from './haikuName.js'
 
 async function diceExists (guild, hash, set) {
-  const number = parseInt(hash.substring(0, 2), 16)
+  const number = parseInt(hash.substring(0, 2), 16) + 1
   const res = await diceBags.find({
-    selector: { number, guild, set }
+    selector: { guild, set, number }
   })
 
   return res.docs.length > 0
@@ -71,7 +87,7 @@ function getDiceData (hash) {
 
   diceData.hash = hash
 
-  diceData.number = indexes.get(0, 'small')
+  diceData.number = indexes.get(0, 'small') + 1
   diceData.faceCount = faceCounts[indexes.get(1, 'small') % faceCounts.length]
 
   diceData.size =
@@ -144,7 +160,7 @@ async function processJoinGuild (guild) {
     hasher.hash(Buffer.from(guild.id, 'utf8')).toString('hex')
   )
   const name = haikuName(indexes, 0, 1, 2)
-  guildDatas.put({
+  await guildDatas.put({
     _id: cuid.slug(),
     guildId: guild.id,
     salt: salt,
@@ -258,7 +274,24 @@ if (isDev) {
 // Display information about a serie such as last winner, and act as a larger dice gallery
 app.get('/series/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  return res.render('series/view', { guild })
+  const setsPromises = []
+
+  for (let i = 1; i < guild.set + 1; i++) {
+    setsPromises.push(
+      diceBags
+        .find({
+          selector: {
+            set: i,
+            seriesId: req.params.id,
+            number: { $exists: true }
+          },
+          sort: ['number']
+        })
+        .then(result => result.docs)
+    )
+  }
+  const sets = await Promise.all(setsPromises)
+  return res.render('series/view', { guild, sets })
 })
 
 // Display detailed information about a specific dice belonging to a user

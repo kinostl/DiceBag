@@ -14,7 +14,6 @@
     "an-array-of-english-words": "^2.0.0",
     "cors": "^2.8.5",
     "cuid": "^2.1.8",
-    "debug": "^4.3.1",
     "discord.js": "^12.5.3",
     "dotenv": "^8.2.0",
     "express": "github:expressjs/express#5.0",
