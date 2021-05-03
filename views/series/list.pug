@@ -27,5 +27,5 @@ block content
   h4 Last Messenger 
     span= guild.lastMessenger.name
   ul
-  each num in [...Array(setNum).keys()]
-    li: a(href="#") Set ##{num}
+  each setNum in setNums
+    li: a(href=`/series/${guild.id}/${setNum}`) Set ##{setNum}

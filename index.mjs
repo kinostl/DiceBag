@@ -273,9 +273,10 @@ if (isDev) {
 
 app.get('/series/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  const setMax = guild.set
-  return res.render('series/list', {guild, setMax})
-}
+  const setNums = [...Array(guild.set).keys()]
+  setNums.shift()
+  return res.render('series/list', { guild, setNums })
+})
 
 // Display information about a serie such as last winner, and act as a larger dice gallery
 app.get('/series/:id/:set', async (req, res) => {
