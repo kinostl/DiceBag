@@ -26,14 +26,6 @@ block content
 
   h4 Last Messenger 
     span= guild.lastMessenger.name
-  h2 Set #{setNum}
-  .setSection
-    each die in set
-      .paper.miniDice
-        span ##{die.number} - 
-        span #{die.name}
-        hr
-        span #{die.faceCount} Faces, 
-        span #{die.size}, 
-        span #{die.specialType}, 
-        span #{die.color}
+  ul
+  each num in [...Array(setNum).keys()]
+    li: a(href="#") Set ##{num}

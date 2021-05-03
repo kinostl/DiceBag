@@ -271,27 +271,27 @@ if (isDev) {
   })
 }
 
-// Display information about a serie such as last winner, and act as a larger dice gallery
 app.get('/series/:id', async (req, res) => {
   const guild = await guildDatas.get(req.params.id)
-  const setsPromises = []
+  const setMax = guild.set
+  return res.render('series/list', {guild, setMax})
+}
 
-  for (let i = 1; i < guild.set + 1; i++) {
-    setsPromises.push(
-      diceBags
-        .find({
-          selector: {
-            set: i,
-            seriesId: req.params.id,
-            number: { $exists: true }
-          },
-          sort: ['number']
-        })
-        .then(result => result.docs)
-    )
-  }
-  const sets = await Promise.all(setsPromises)
-  return res.render('series/view', { guild, sets })
+// Display information about a serie such as last winner, and act as a larger dice gallery
+app.get('/series/:id/:set', async (req, res) => {
+  const setNum = req.params.set
+  const guild = await guildDatas.get(req.params.id)
+  const set = await diceBags
+    .find({
+      selector: {
+        set: setNum,
+        seriesId: req.params.id,
+        number: { $exists: true }
+      },
+      sort: ['number']
+    })
+    .then(result => result.docs)
+  return res.render('series/view', { guild, set, setNum })
 })
 
 // Display detailed information about a specific dice belonging to a user
